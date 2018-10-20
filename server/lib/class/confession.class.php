@@ -47,12 +47,15 @@ class Website
 	{
 		global $content, $Filename;
 		
+		if (!file_exists('media/image'))
+			mkdir('media/image', 0777, true);
+		
 		if (isset($_FILES))
 		{
 			if(is_array($_FILES))
 			{
 				$FileExt = strtolower(end(explode('.',$_FILES['image']['name'])));
-				$FileAllow = array("jpeg","jpg","png", "");
+				$FileAllow = array("jpeg","jpg","png", "");		
 				if(in_array($FileExt, $FileAllow) === true)
 				{
 					if(is_uploaded_file($_FILES['image']['tmp_name']))
