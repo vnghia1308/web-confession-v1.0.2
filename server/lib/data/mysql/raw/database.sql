@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Cơ sở dữ liệu: `nghiagay_confession`
+-- Cơ sở dữ liệu: `vynghia_confession`
 --
 
 -- --------------------------------------------------------
@@ -38,7 +38,7 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`username`, `password`) VALUES
-('admin', 'nghiametrai');
+('admin', 'vynghia1308');
 
 -- --------------------------------------------------------
 
@@ -58,7 +58,7 @@ CREATE TABLE `facebook` (
 --
 
 INSERT INTO `facebook` (`fb_mode`, `page_id`, `content`, `token`) VALUES
-(0, 141996619863346, 'null');
+(0, 0, 'W1dlYiBDb25mZXNzaW9uXQ0KLS0tLQ0KDQpO4buZaSBkdW5nIGNvbmZlc3Npb246IHt7Y29udGVudH19', 'null');
 
 -- --------------------------------------------------------
 
