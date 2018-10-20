@@ -1,0 +1,3 @@
+RewriteEngine On
+
+RewriteRule ^action/?$ action.php [L]
