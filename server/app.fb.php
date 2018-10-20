@@ -1,0 +1,4 @@
+<?php
+/* FACEBOOK APP SDK */
+define('FB_APP_ID', '1258092520980318');
+define('FB_APP_SR', 'a4b4ef467f06867e781497ea0e5c8073');
