@@ -43,7 +43,7 @@ class Database
 
 class Website
 {
-	public function sendImage($db, $FILES)
+	public function sendImage($FILES)
 	{
 		global $content, $Filename;
 		
