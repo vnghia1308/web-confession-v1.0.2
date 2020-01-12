@@ -1,29 +1,29 @@
 <?php
 /* >_ Developed by Vy Nghia */
 require 'login.php';
-error_reporting(0);
 
-if(isset($_SESSION['admin'])){
+if(!empty($_GET["page"])){
 	switch($_GET['page']){
-		case null: $page = 'Trang chủ'; break;
 		case 'change': $page = 'Thay đổi thông tin đăng nhập'; break;
 		case 'approval': $page = 'Bài viết chờ phê duyệt'; break;
 		case 'post': $page = 'Bài viết đã phê duyệt'; break;
 		case 'facebook': $page = 'Kết nối với Facebook'; break;
 	}
-} else
-	$page = 'Đăng nhập';
+} else {
+	$_GET['page'] = null;
+	$page = 'Trang chủ';
+}
 
-$fbquery = mysqli_query($con, 'SELECT * FROM `facebook` WHERE 1');
-$fb = mysqli_fetch_array($fbquery);
-$admin = new Admin;
-$admin->checkAccessToken($fb['token']);
+$fQuery = mysqli_query($con, 'SELECT * FROM `facebook` WHERE 1');
+$f = mysqli_fetch_array($fQuery);
 
-if($fb['token'] !== 'null'){
-	if($arToken['check'] == true)
+$a = new Admin($con);
+
+if($f['token'] !== 'null'){
+	if($a->checkAccessToken($f['token']))
 	{
-		$pageList = $admin->GetPageList($accessToken);
-		$_SESSION['facebook_access_token'] = (string) $fb['token'];
+		$pageList = $a->GetPageList($accessToken);
+		$_SESSION['facebook_access_token'] = (string) $f['token'];
 	}
 	else 
 	{
@@ -79,25 +79,25 @@ textarea {
 <li>
 <a href="install"><i class="fa fa-server" aria-hidden="true"></i> <span class="nav-label">Cấu hình máy chủ</span></a>
 </li>
-<li <?php echo ($_GET['page'] == null) ? 'class="active"' : null; ?>>
+<li <?= (empty($_GET['page'])) ? 'class="active"' : null; ?>>
 <a href="admin"><i class="fa fa-user-circle" aria-hidden="true"></i> <span class="nav-label">Trang quản trị viên</span></a>
 </li>
-<li <?php echo ($_GET['page'] == 'approval') ? 'class="active"' : null; ?>>
+<li <?= ($_GET['page'] == 'approval') ? 'class="active"' : null; ?>>
 <a href="admin/approval"><i class="fa fa-clock-o" aria-hidden="true"></i> <span class="nav-label">Bài viết chờ phê duyệt</span></a>
 </li>
-<li <?php echo ($_GET['page'] == 'post') ? 'class="active"' : null; ?>>
+<li <?= ($_GET['page'] == 'post') ? 'class="active"' : null; ?>>
 <a href="admin/post"><i class="fa fa-check-square-o" aria-hidden="true"></i> <span class="nav-label">Bài viết đã phê duyệt</span></a>
 </li>
-<li <?php echo ($_GET['page'] == 'facebook') ? 'class="active"' : null; ?>>
+<li <?= ($_GET['page'] == 'facebook') ? 'class="active"' : null; ?>>
 <a href="admin/facebook"><i class="fa fa-facebook-square" aria-hidden="true"></i> <span class="nav-label">Kết nối với Facebook</span></a>
 </li>
-<li <?php echo ($_GET['page'] == 'change') ? 'class="active"' : null; ?>>
+<li <?= ($_GET['page'] == 'change') ? 'class="active"' : null; ?>>
 <a href="admin/change"><i class="fa fa-address-card" aria-hidden="true"></i> <span class="nav-label">Đổi mật khẩu</span></a>
 </li>
 <li>
 <a href="server/action?type=admin&do=logout"><i class="fa fa-power-off" aria-hidden="true"></i>  <span class="nav-label">Đăng xuất</span></a>
 </li>
-<?php endif; ?>
+<?php endif; // --> if(isset($_SESSION['admin'])) ?>
 </ul>
 </div>
 </nav> <div id="page-wrapper" class="gray-bg">
@@ -137,6 +137,7 @@ textarea {
 	</div>
 	<div class="ibox-content">
 <?php if(isset($_SESSION['admin'])):
+if(!empty($_GET["page"])):
 switch($_GET['page']):
 /* THAY ĐỔI MẬT KHẨU QUẢN TRỊ VIÊN */
 case 'change': ?>
@@ -153,7 +154,7 @@ case 'change': ?>
 <?php break;
 /* QUẢN LÝ BÀI ĐĂNG CHỜ DUYỆT */
 case 'approval':
-if($_GET['p'] == null)
+if(empty($_GET['p']))
 		$_GET['p'] = 1;
 if($_GET['p'] >= 2)
 	$pages = ($_GET['p'] - 1) * 10;
@@ -163,75 +164,37 @@ else
 <hr>
 <div id="post">
 <?php
-if($_GET['p'] == null)
-		$_GET['p'] = 1;
-if($_GET['p'] >= 2)
-	$pages = ($_GET['p'] - 1) * 10;
-else
-	$pages = 0;
-$postQuery = mysqli_query($con,"SELECT * FROM `post` WHERE `approval` = 0 ORDER BY `time` DESC LIMIT 10 OFFSET {$pages}");
-while($post = mysqli_fetch_array($postQuery)):
-$pst = new Website; ?>
-<div class="social-feed-separated" id="post-id-<?php echo $post['id'] ?>">
-<div class="social-feed-box">
-<div class="social-avatar">
-<small class="text-muted"><?php echo $pst->timeAgo(strtotime($post['time'])) ?></small>
+foreach($a->GetPost($pages, 0) as $p){
+	echo $p;
+}
+ ?>
 </div>
-<div class="social-body">
-<p><?php echo htmlspecialchars(base64_decode($post['content'])) ?></p>
-<?php if($post['image'] !== ''): ?>
-<img src="<?php echo WEBURL ?>/media/image/<?php echo $post['image'] ?>" width="100%" height="100%"/>
-<?php endif; ?>
-<p><hr></p>
-<div class="">
-<button class="btn btn-primary btn-rounded btn-sm" id="approval" data-id="<?php echo $post['id'] ?>" data-type="allow"><i class="fa fa-check"></i> Phê duyệt bài viết này</button>
-<button class="btn btn-danger btn-rounded btn-sm" id="approval" data-id="<?php echo $post['id'] ?>" data-type="deny"><i class="fa fa-times"></i> Từ chối bài viết này</button>
-</div>
-</div>
-</div>
-</div>
-<?php 
-endwhile; ?>
-</div>
+
+
 <?php break;
 /* QUẢN LÝ BÀI ĐĂNG ĐÃ DUYỆT */
 case 'post':
-if($_GET['p'] == null)
+if(empty($_GET['p']))
 		$_GET['p'] = 1;
+
 if($_GET['p'] >= 2)
 	$pages = ($_GET['p'] - 1) * 10;
 else
 	$pages = 0; ?>
 <div id="post">
-<small>Bài viết được hiển thị theo thời gian duyệt</small>
-<?php $postQuery = mysqli_query($con,"SELECT * FROM `post` WHERE `approval` = 1 ORDER BY `time_approval` DESC LIMIT 10 OFFSET {$pages}");
-while($post = mysqli_fetch_array($postQuery)):
-$pst = new Website; ?>
-<div class="social-feed-separated" id="post-id-<?php echo $post['id'] ?>">
-<div class="social-feed-box">
-<div class="social-avatar">
-<small class="text-muted"><?php echo $pst->timeAgo(strtotime($post['time'])) ?></small>
-</div>
-<div class="social-body">
-<p><?php echo htmlspecialchars(base64_decode($post['content'])) ?></p>
-<?php if($post['image'] !== ''): ?>
-<img src="<?php echo WEBURL ?>/media/image/<?php echo $post['image'] ?>" width="100%" height="100%"/>
-<?php endif; ?>
-<p><hr></p>
-<div class="">
-<button class="btn btn-warning btn-rounded btn-sm" id="approval" data-id="<?php echo $post['id'] ?>" data-type="re-approval"><i class="fa fa-refresh"></i> Đưa về trạng thái phê duyệt</button>
-<button class="btn btn-danger btn-rounded btn-sm" id="approval" data-id="<?php echo $post['id'] ?>" data-type="deny"><i class="fa fa-times"></i> Xóa bài bài viết này</button>
-</div>
-</div>
-</div>
-</div>
+<p>Bài viết được hiển thị theo thời gian duyệt</p>
 <?php 
-endwhile; ?>
+foreach($a->GetPost($pages, 1) as $p){
+	echo $p;
+}
+?>
 </div>
+
+
 <?php break;
 /* KẾT NỐI VỚI FACEBOOK */
 case 'facebook': ?>
-<?php if($arToken['check'] !== true): ?>
+<?php if($a->checkAccessToken($f['token'])): ?>
 <center><a class="btn btn-success btn-facebook btn-outline" href="<?php echo $loginUrl ?>">
 	<i class="fa fa-facebook"> </i> Đăng nhập với Facebook
 </a></center>
@@ -241,18 +204,18 @@ case 'facebook': ?>
 </a></center>
 <form id="fb-config" method="POST" action="" class="form-horizontal">
 <div class="form-group"><label class="col-sm-2 control-label"></label>
-	<div class="col-sm-10"><div class="i-checks checked"><label> <input name="fb-mode" type="checkbox" value="1" <?php if($fb['fb_mode'] == 1) echo 'checked'; ?>> Mở chế độ đăng lên Trang</label></div></div>
+	<div class="col-sm-10"><div class="i-checks checked"><label> <input name="fb-mode" type="checkbox" value="1" <?php if($f['fb_mode'] == 1) echo 'checked'; ?>> Mở chế độ đăng lên Trang</label></div></div>
 </div>
 <div class="form-group"><label class="col-sm-2 control-label">ID Page</label>
-	<!--<div class="col-sm-10"><input type="text" name="page-id" value="<?php echo $fb['page_id'] ?>" class="form-control"></div>-->
+	<!--<div class="col-sm-10"><input type="text" name="page-id" value="<?php echo $f['page_id'] ?>" class="form-control"></div>-->
 	<div class="col-sm-10"><select class="form-control m-b" name="page-id">
 	<?php foreach($pageList as &$v): ?>
-		<option <?php echo ($fb["page_id"] == $v["id"]) ? "selected" : null; ?> value="<?= $v["id"] ?>"><?= $v["name"] ?></option>
+		<option <?= ($f["page_id"] == $v["id"]) ? "selected" : null; ?> value="<?= $v["id"] ?>"><?= $v["name"] ?></option>
 	<?php endforeach; ?>
 	</select></div>
 </div>
 <div class="form-group"><label class="col-sm-2 control-label">Nội dung bài viết</label>
-	<div class="col-sm-10"><textarea name="fb-content"><?php echo base64_decode($fb['content']) ?></textarea>
+	<div class="col-sm-10"><textarea name="fb-content"><?php echo base64_decode($f['content']) ?></textarea>
 	<small><strong>{{content}}</strong> đại diện cho nội dung của confession</small></div>
 </div>
 <div class="form-group">
@@ -263,18 +226,17 @@ case 'facebook': ?>
 </form>
 <?php endif;
 break;
+endswitch;
 /* TRANG CHỦ */
-case null; ?>
+else: ?>
 <div class="alert alert-success" style="color:#1abc9c" role="alert">
 <font color="black">Trang web được sáng tạo và phát triển bởi <a href="https://www.facebook.com/100022176820483">Vy Nghĩa</a>. Mọi góp ý và phản hồi xin hãy liên hệ qua Facebook hoặc Email, nếu có chia sẻ mong bạn hãy giữ nguồn cho mình.<br />
-<strong>Email:</strong> project@nghia.org (hoặc vynghia.cntt17@gmail.com)<br />
+<strong>Email:</strong> phamvynghia@gmail.com<br />
 <br />
 <strong>Cảm ơn đã sử dụng!</strong></font>
 </div>
-<?php break;
-endswitch;
-endif;
-if(!$_SESSION['admin']): ?>
+<?php endif;endif;
+if(empty($_SESSION['admin'])): ?>
 <form id="Login" method="POST" action="" class="form-horizontal">
 <div class="form-group"><label class="col-sm-2 control-label">Username</label>
 <div class="col-sm-10"><input type="text" name="username" value="" class="form-control" autocomplete="off"></div>
@@ -293,7 +255,8 @@ if(!$_SESSION['admin']): ?>
 </div> 
 
 <div class="row" style="text-align: center">
-<?php 
+<?php
+	if($_GET['page'] == "approval" || $_GET['page'] == "post"):
 	switch($_GET['page']){
 		case 'approval':
 			$query = 'SELECT * FROM `post` WHERE `approval` = 0';
@@ -302,21 +265,22 @@ if(!$_SESSION['admin']): ?>
 			$query = 'SELECT * FROM `post` WHERE `approval` = 1';
 			break;
 	}
+	
 	$n = mysqli_num_rows(mysqli_query($con,$query)) / 10;
 	if(mysqli_num_rows(mysqli_query($con,$query)) % 10 > 0)
 		$n+=1;
 	$n = (int) $n; 
 	if(mysqli_num_rows(mysqli_query($con,$query)) > 0 && isset($_SESSION['admin'])): ?>
 <ul class="pagination pagination-sm">
-    <li class="<?php echo ($_GET['p']-1 != 0) ? 'first' : 'first disabled';?>"><a href="/admin/<?php echo $_GET['page'] ?>?p=1">First</a></li>
-    <li class="<?php echo ($_GET['p']-1 != 0) ? 'prev' : 'prev disabled';?>"><a href="/admin/<?php echo $_GET['page'] ?><?php echo $_GET['page'] ?>?p=<?php echo ($_GET['p']-1 != 0) ? $_GET['p']-1 : 1;?>">Previous</a></li>
+    <li class="<?= ($_GET['p']-1 != 0) ? 'first' : 'first disabled';?>"><a href="/admin/<?= $_GET['page'] ?>?p=1">First</a></li>
+    <li class="<?= ($_GET['p']-1 != 0) ? 'prev' : 'prev disabled';?>"><a href="/admin/<?= $_GET['page'] ?><?= $_GET['page'] ?>?p=<?= ($_GET['p']-1 != 0) ? $_GET['p']-1 : 1;?>">Previous</a></li>
 	<?php for($i = 1; $i <= $n; $i++): ?>
-    <li class="<?php echo ($_GET['p'] == $i) ? 'page active' : 'page'; ?>"><a href="/admin/<?php echo $_GET['page'] ?>?p=<?php echo $i ?>"><?php echo $i ?></a></li>
+    <li class="<?= ($_GET['p'] == $i) ? 'page active' : 'page'; ?>"><a href="/admin/<?= $_GET['page'] ?>?p=<?= $i ?>"><?= $i ?></a></li>
 	<?php endfor; ?>
-    <li class="<?php echo ($_GET['p']+1 > $n) ? 'next disabled' : 'next'; ?>"><a href="/admin/<?php echo $_GET['page'] ?>?p=<?php echo $_GET['p']+1 ?>">Next</a></li>
-    <li class="<?php echo ($_GET['p']+1 > $n) ? 'last disabled' : 'last'; ?>"><a href="/admin/<?php echo $_GET['page'] ?>?p=<?php echo $n ?>">Last</a></li>
+    <li class="<?= ($_GET['p']+1 > $n) ? 'next disabled' : 'next'; ?>"><a href="/admin/<?=$_GET['page'] ?>?p=<?= $_GET['p']+1 ?>">Next</a></li>
+    <li class="<?= ($_GET['p']+1 > $n) ? 'last disabled' : 'last'; ?>"><a href="/admin/<?= $_GET['page'] ?>?p=<?= $n ?>">Last</a></li>
 </ul>
-<?php endif; ?>
+<?php endif;endif; ?>
 </div>
 </div>
 
@@ -341,11 +305,12 @@ if(!$_SESSION['admin']): ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.4/sweetalert2.min.js"></script>
 <script>
 <?php if(isset($_SESSION['admin'])):
-if($fb['fb_mode'] == 1): 
-	if($arToken['check'] == false): ?>
-	toastr.error('access_token của bạn đã hết hạn, vui lòng cập nhật lại')
-<?php endif;
-endif;	?>
+if($f['fb_mode'] == 1){
+	if($a->checkAccessToken($f['token'])){
+		echo "toastr.error('access_token của bạn đã hết hạn, vui lòng cập nhật lại')";
+	}
+}
+?>
 $(document).ready(function () {
 	$('.i-checks').iCheck({
 		checkboxClass: 'icheckbox_square-green',
@@ -400,7 +365,6 @@ swal({
 						},
 						success: function(data) {
 							toastr.success('Bài đăng này đã được đăng lên Trang')
-							console.log(data);
 						},
 						error: function(){
 							toastr.error('Không thể đăng lên Trang', 'Đã xảy ra lỗi')
@@ -430,7 +394,6 @@ $("#fb-config").on('submit',(function(e) {
 		},
 		success: function(data) {
 			toastr.success('Thay đổi của bạn đã được lưu')
-			console.log(data);
 		},
 		error: function(){
 			toastr.error("Đã xảy ra lỗi!", "Đã xảy ra lỗi cục bộ, vui lòng thử lại!")
