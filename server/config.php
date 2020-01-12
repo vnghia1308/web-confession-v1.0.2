@@ -1,16 +1,15 @@
 <?php
 /* >_ Developed by Vy Nghia */
-error_reporting(0);
 require 'lib/class/confession.class.php';
 
-/* WEBSITE DOMAIN */
-define('WEBURL', 'http://domain.com');
+/* WEBSITE URL */
+define('WEBURL', 'https://nghia.org/cfs');
 
 /* MYSQL DATABASE */
 $db = new Database;
-$db->dbhost('localhost');
-$db->dbuser('username');
-$db->dbpass('password');
+$db->dbhost('db_host');
+$db->dbuser('db_user');
+$db->dbpass('db_pass');
 $db->dbname('db_name');
 
 $con = $db->connect();
@@ -24,7 +23,7 @@ if( /* Exception Access */
 	!strpos($_SERVER["SCRIPT_NAME"], "database"))
 {
 	if(!$con)
-		die("connect to database failed");
+		die("Connection failed");
 	else
 	{
 		$testdb = mysqli_fetch_array(mysqli_query($con, "select * from admin"));
@@ -33,6 +32,8 @@ if( /* Exception Access */
 			die("database's null");
 	}
 }
+
+$config = new config(WEBURL);
 
 /* CALL APP SDK */
 include ('app.fb.php');
