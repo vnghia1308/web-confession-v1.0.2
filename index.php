@@ -114,24 +114,12 @@ if($_GET['p'] >= 2)
 	$pages = ($_GET['p'] - 1) * 10;
 else
 	$pages = 0;
-$postQuery = mysqli_query($con, "SELECT * FROM `post` WHERE `approval` = 1 ORDER BY `time_approval` DESC LIMIT 10 OFFSET {$pages}");
-while($post = mysqli_fetch_array($postQuery)):
-$pst = new Website; ?>
-<div class="social-feed-separated" id="post-id-<?php echo $post['id'] ?>">
-<div class="social-feed-box">
-<div class="social-avatar">
-<small class="text-muted"><?php echo $pst->timeAgo(strtotime($post['time'])) ?> (phê duyệt vào <?php echo $pst->timeAgo(strtotime($post['time_approval'])) ?>)</small>
-</div>
-<div class="social-body">
-<p><?php echo base64_decode($post['content']) ?></p>
-<?php if($post['image'] !== ''): ?>
-<img src="<?php echo WEBURL ?>/media/image/<?php echo $post['image'] ?>" width="100%" height="100%"/>
-<?php endif; ?>
-</div>
-</div>
-</div>
-<?php 
-endwhile;?>
+
+$w = new Website($con); 
+foreach($w->GetPublicPost($pages) as $p){
+	echo $p;
+}
+?>
 </div>
 </div>
 
@@ -139,18 +127,18 @@ endwhile;?>
 <?php
 	$query = mysqli_query($con, 'SELECT * FROM `post` WHERE `approval` = 1');
 	$n = mysqli_num_rows($query) / 10;
-	if(mysqli_num_rows(mysqli_query($con, $query)) % 10 > 0)
+	if(mysqli_num_rows($query) % 10 > 0)
 		$n+=1;
 	$n = (int) $n; 
-	if(mysqli_num_rows(mysqli_query($con, $query)) > 0): ?>
+	if(mysqli_num_rows($query) > 0): ?>
 <ul class="pagination pagination-sm">
-    <li class="<?php echo ($_GET['p']-1 != 0) ? 'first' : 'first disabled';?>"><a href="/home?p=1">First</a></li>
-    <li class="<?php echo ($_GET['p']-1 != 0) ? 'prev' : 'prev disabled';?>"><a href="/home?p=<?php echo ($_GET['p']-1 != 0) ? $_GET['p']-1 : 1;?>">Previous</a></li>
+    <li class="<?= ($_GET['p']-1 != 0) ? 'first' : 'first disabled';?>"><a href="/home?p=1">First</a></li>
+    <li class="<?= ($_GET['p']-1 != 0) ? 'prev' : 'prev disabled';?>"><a href="/home?p=<?= ($_GET['p']-1 != 0) ? $_GET['p']-1 : 1;?>">Previous</a></li>
 	<?php for($i = 1; $i <= $n; $i++): ?>
-    <li class="<?php echo ($_GET['p'] == $i) ? 'page active' : 'page'; ?>"><a href="/home?p=<?php echo $i ?>"><?php echo $i ?></a></li>
+    <li class="<?= ($_GET['p'] == $i) ? 'page active' : 'page'; ?>"><a href="/home?p=<?= $i ?>"><?php echo $i ?></a></li>
 	<?php endfor; ?>
-    <li class="<?php echo ($_GET['p']+1 > $n) ? 'next disabled' : 'next'; ?>"><a href="/home?p=<?php echo $_GET['p']+1 ?>">Next</a></li>
-    <li class="<?php echo ($_GET['p']+1 > $n) ? 'last disabled' : 'last'; ?>"><a href="/home?p=<?php echo $n ?>">Last</a></li>
+    <li class="<?= ($_GET['p']+1 > $n) ? 'next disabled' : 'next'; ?>"><a href="/home?p=<?= $_GET['p']+1 ?>">Next</a></li>
+    <li class="<?= ($_GET['p']+1 > $n) ? 'last disabled' : 'last'; ?>"><a href="/home?p=<?= $n ?>">Last</a></li>
 </ul>
 <?php endif; ?>
 </div>
