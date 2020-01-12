@@ -34,5 +34,7 @@ if( /* Exception Access */
 	}
 }
 
+$config = new config(WEBURL);
+
 /* CALL APP SDK */
 include ('app.fb.php');
