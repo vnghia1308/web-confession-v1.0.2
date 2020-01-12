@@ -9,28 +9,28 @@ if(isset($_SESSION['install'])){
 		switch($_GET['type'])
 		{
 			case 'web':
-				$configExample = file_get_contents('server/lib/example/config.example.php');
+				$e = file_get_contents('server/lib/example/config.example.php');
 				
-				$numcfg 	= ["{1}", "{2}", "{3}", "{4}", "{5}"];
-				$change   	= [$_POST['weburl'], $_POST['dbhost'], $_POST['dbuser'], $_POST['dbpass'], $_POST['dbname']];
+				$c 	= ["{1}", "{2}", "{3}", "{4}", "{5}"];
+				$n  = [$_POST['weburl'], $_POST['dbhost'], $_POST['dbuser'], $_POST['dbpass'], $_POST['dbname']];
 				
-				$configNew = str_replace($numcfg, $change, $configExample);
-				$ConfigFile = fopen("server/config.php", "w") or die("Không thể thay đổi file này!");
-				fwrite($ConfigFile, $configNew);
-				fclose($ConfigFile);
+				$nC = str_replace($c, $n, $e);
+				$nF = fopen("server/config.php", "w") or die("Không thể thay đổi file này!");
+				fwrite($nF, $nC);
+				fclose($nF);
 				
 				echo (true);
 				break;
 			case 'sdk':
-				$configExample = file_get_contents('server/lib/example/app.fb.example.php');
+				$e = file_get_contents('server/lib/example/app.fb.example.php');
 				
-				$sdkcfg 	= ["{FB_APP_ID}", "{FB_APP_SR}"];
-				$change   	= [$_POST['fb-app-id'], $_POST['fb-app-secret']];
+				$c 	= ["{FB_APP_ID}", "{FB_APP_SR}"];
+				$n  = [$_POST['fb-app-id'], $_POST['fb-app-secret']];
 				
-				$configNew 	= str_replace($sdkcfg, $change, $configExample);
-				$ConfigFile = fopen("server/app.fb.php", "w") or die("Không thể thay đổi file này!");
-				fwrite($ConfigFile, $configNew);
-				fclose($ConfigFile);
+				$nC = str_replace($c, $n, $e);
+				$nF = fopen("server/app.fb.php", "w") or die("Không thể thay đổi file này!");
+				fwrite($nF, $nC);
+				fclose($nF);
 				
 				echo (true);
 				break;
@@ -45,6 +45,8 @@ if(isset($_SESSION['install'])){
 		
 		exit;
 	}
+} else {
+	$_SESSION['install'] = null;
 }
 ?>
 <!DOCTYPE html>
@@ -139,10 +141,21 @@ textarea {
 	<div class="ibox-content">
 	   <?php if(isset($_SESSION['install'])): 
 		define('NO', '<i class="fa fa-times">');
-		define('YES', '<i class="fa fa-check">');?>
+		define('YES', '<i class="fa fa-check">');
+		
+		function _chPHPVersion(){
+			$v = substr(phpversion(), 0, -(strlen(phpversion()) - 1));
+			
+			if($v >= 5){
+				return true;
+			} else {
+				return false;
+			}
+		}
+		?>
 		<div class="alert alert-success" style="color:#1abc9c" role="alert">
 		<font color="black">Trang web được sáng tạo và phát triển bởi <a href="https://www.facebook.com/100022176820483">Vy Nghĩa</a>. Mọi góp ý và phản hồi xin hãy liên hệ qua Facebook hoặc Email, nếu có chia sẻ mong bạn hãy giữ nguồn cho mình.<br />
-		<strong>Email:</strong> project@nghia.org (hoặc vynghia.cntt17@gmail.com)<br />
+		<strong>Email:</strong> phamvynghia@gmail.com<br />
 		<br />
 		<strong>Cảm ơn đã sử dụng!</strong></font>
 		</div>
@@ -159,15 +172,15 @@ textarea {
 			<tbody>
 			  <tr>
 				<td>Kiểm tra phiên bản PHP</td>
-				<td>-</td>
+				<td><?= (_chPHPVersion()) ? YES :NO ?></td>
 			  </tr>
 			  <tr>
 				<td>Kết nối với cơ sở dữ liệu (mysql)</td>
-				<td><?php echo ($con) ? YES : NO; ?></td>
+				<td><?= ($con) ? YES : NO ?></td>
 			  </tr>
 			  <tr>
 				<td>Phiên bản PHP trên server của bạn</td>
-				<td><?php echo phpversion() ?></td>
+				<td><?= phpversion() ?></td>
 			  </tr>
 			</tbody>
 		  </table>
