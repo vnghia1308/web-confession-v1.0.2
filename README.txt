@@ -1,7 +1,9 @@
-Web Confession v1.0.1 - giúp bạn xây dựng 1 hệ thống Confession (chia sẻ tâm tư ẩn danh). 
+Web Confession v1.0.2 - giúp bạn xây dựng 1 hệ thống Confession (chia sẻ tâm tư ẩn danh). 
 
-[Cải thiện]
-- Làm mới mã nguồn so với phiên bản trước (mysqli, sdk facebook, logic,...)
+[Cải thiện 13/01/2020]
+- Làm mới mã nguồn so với phiên bản trước (OOP, logic,...)
+- Cải thiện một số tính năng
+- Cải thiện hiệu năng của project
 
 [Hướng dẫn]
 - Vào http://domain.com/install để config lại thôi
@@ -14,10 +16,11 @@ Admin Page: http://domain.com/admin
 Install: vynghia@
 Admin:
 - Tài khoản: admin
-- Mật khẩu: vynghia@
+- Mật khẩu: vynghia1308
 
 -- Tác giả: Vy Nghĩa
--- Fanpage: https://www.facebook.com/nghiadev
+-- Fanpage: https://www.facebook.com/vynghiapage
+-- Facebook: fb/nghiadev
 
 ---------
-© 2017 Vy Nghia
+© 2017 - 2020 Vy Nghia
