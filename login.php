@@ -52,7 +52,7 @@ if(isset($_SESSION["admin"]) && !empty(FB_APP_ID) && !empty(FB_APP_SR)){
 
 		// redirect the user back to the same page if it has "code" GET variable
 		if (isset($_GET['code'])) {
-			mysql_query("UPDATE `facebook` SET `token` = '{$accessToken}' WHERE 1");
+			mysqli_query($con, "UPDATE `facebook` SET `token` = '{$accessToken}' WHERE 1");
 			
 			if(isset($_SERVER['HTTP_REFERER'])){
 			  if($_SERVER['HTTP_REFERER'] == 'https://www.facebook.com/'){
