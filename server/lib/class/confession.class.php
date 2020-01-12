@@ -41,10 +41,29 @@ class Database
 	}
 }
 
-class Website
+class config
 {
+	public $weburl;
+	
+	public function __construct($url){ 
+		$this->weburl = $url;
+    }
+	
+	public function GetWebUrl(){
+		return $this->weburl;
+	}
+}
+
+class Website extends config
+{
+	protected $db;
+	
+	public function __construct($db){ 
+		$this->db = $db;
+    } 
+	
 	public function sendImage($FILES)
-	{
+	{	
 		global $content, $Filename;
 		
 		if (!file_exists('media/image'))
@@ -140,39 +159,74 @@ class Website
 		}
 	  }
 	}
+	
+	public function GetPublicPost($p){
+		$q = mysqli_query($this->db, "SELECT * FROM `post` WHERE `approval` = 1 ORDER BY `time_approval` DESC LIMIT 10 OFFSET $p");
+		$a = array();
+		$i = "";
+		
+		$t = '<div class="social-feed-separated" id="post-id-{ID}">
+<div class="social-feed-box">
+<div class="social-avatar">
+<small class="text-muted">{TIME_AGO} (phê duyệt vào {TIME_APPROVAL})</small>
+</div>
+<div class="social-body">
+<p>{CONTENT}</p>
+{IMAGE}
+</div>
+</div>
+</div>';
+		
+		while($f = mysqli_fetch_array($q)){
+			if($f['image'] !== '')
+				$i = '<img src="media/image/' . $f['image'] . '" width="100%" height="100%"/>';
+			else
+				$i = null;
+			
+			$c = ["{ID}", "{TIME_AGO}", "{TIME_APPROVAL}", "{CONTENT}", "{IMAGE}"];
+			$r = [$f["id"], $this->timeAgo(strtotime($f['time'])), $this->timeAgo(strtotime($f['time_approval'])), htmlspecialchars(base64_decode($f['content'])), $i];
+			
+			$nC = str_replace($c, $r, $t);
+			
+			array_push($a, $nC);
+		}
+		
+		return $a;
+	}
 }
 
-class Admin
+class Admin extends Website
 {
-	public function checkadmin($db, $username, $password){
-		global $status;
-		$query = mysqli_query($db, "SELECT * FROM `admin` WHERE 1");
-		$admin = mysqli_fetch_array($query);
+	protected $db;
+	
+	public function __construct($db){ 
+		$this->db = $db;
+    } 
+	
+	public function checkadmin($username, $password){
+		$sql = mysqli_query($this->db, "SELECT * FROM admin WHERE username='$username' AND password='$password'");
 		
-		if($admin['username'] == $username && $admin['password'] == $password)
-			$status = true;
-		else 
-			$status = false;		
+		if(mysqli_num_rows($sql) > 0)
+			return true;
+		else
+			return false;
 	}
 	
-	public function checkAccessToken($accessToken){
-		global $arToken;
-		
+	public function checkAccessToken($accessToken){		
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_VERBOSE, 1);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
 		curl_setopt($ch,CURLOPT_URL, 'https://graph.facebook.com/me/?access_token='.$accessToken);
-		$getUserJson = curl_exec($ch);
+		$j = curl_exec($ch);
 		curl_close($ch);
 		
-		$user = json_decode($getUserJson);
-		if(isset($user->id))
-			$check = true;
+		$u = json_decode($j);
+		if(isset($u->id))
+			return true;
 		else
-			$check = false;
-		$arToken = array('check' => $check);
+			return false;
 	}
 	
 	public function GetPageList($accessToken)
@@ -196,5 +250,62 @@ class Admin
 		}
 		
 		return (array)$pageList;
+	}
+	
+	public function GetPost($p, $s){
+		$q = mysqli_query($this->db, "SELECT * FROM `post` WHERE `approval` = $s ORDER BY `time` DESC LIMIT 10 OFFSET $p");
+		$a = array();
+		
+		if($s == 0){
+			$t = '<div class="social-feed-separated" id="post-id-{ID}">
+<div class="social-feed-box">
+<div class="social-avatar">
+<small class="text-muted">{TIME_AGO}</small>
+</div>
+<div class="social-body">
+<p>{CONTENT}</p>
+{IMAGE}
+<p><hr></p>
+<div class="">
+<button class="btn btn-primary btn-rounded btn-sm" id="approval" data-id="{ID}" data-type="allow"><i class="fa fa-check"></i> Phê duyệt bài viết này</button>
+<button class="btn btn-danger btn-rounded btn-sm" id="approval" data-id="{ID}" data-type="deny"><i class="fa fa-times"></i> Xóa bài bài viết này</button>
+</div>
+</div>
+</div>
+</div>';
+		} else {
+			$t = '<div class="social-feed-separated" id="post-id-{ID}">
+<div class="social-feed-box">
+<div class="social-avatar">
+<small class="text-muted">{TIME_AGO}</small>
+</div>
+<div class="social-body">
+<p>{CONTENT}</p>
+{IMAGE}
+<p><hr></p>
+<div class="">
+<button class="btn btn-warning btn-rounded btn-sm" id="approval" data-id="{ID}" data-type="re-approval"><i class="fa fa-refresh"></i> Đưa về trạng thái phê duyệt</button>
+<button class="btn btn-danger btn-rounded btn-sm" id="approval" data-id="{ID}" data-type="deny"><i class="fa fa-times"></i> Xóa bài bài viết này</button>
+</div>
+</div>
+</div>
+</div>';
+		}
+		
+		while($f = mysqli_fetch_array($q)){			
+			if($f['image'] !== '')
+				$i = '<img src="media/image/' . $f['image'] . '" width="100%" height="100%"/>';
+			else
+				$i = null;
+			
+			$c = ["{ID}", "{TIME_AGO}", "{CONTENT}", "{IMAGE}"];
+			$r = [$f["id"], parent::timeAgo(strtotime($f['time'])), htmlspecialchars(base64_decode($f['content'])), $i];
+			
+			$nC = str_replace($c, $r, $t);
+			
+			array_push($a, $nC);
+		}
+		
+		return $a;
 	}
 }
