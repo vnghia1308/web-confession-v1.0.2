@@ -8,10 +8,9 @@ switch($_GET['login']){
 	case 'admin':
 		if($_POST['username'] !== '' && $_POST['password'] !== '')
 		{
-			$admin = new Admin;
-			$admin->checkadmin($con, $_POST['username'], $_POST['password']);
+			$admin = new Admin($con);
 			
-			if($status == true)
+			if($admin->checkadmin($_POST['username'], $_POST['password']))
 			{
 				echo ('success');
 				$_SESSION['admin'] = $_POST['username'];
