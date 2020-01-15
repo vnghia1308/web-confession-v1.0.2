@@ -20,7 +20,7 @@ if(isset($_POST['content']))
 		}
 		
 		if($content['status'] == true && $content['error'] == false){
-			mysqli_query($con, "INSERT INTO `post`(`id`,  `content`, `approval`, `image`, `time`) VALUES ('', '".base64_encode($_POST['content'])."', '0', '$Filename','".date("Y-m-d H:i:s")."')");
+			mysqli_query($con, "INSERT INTO `post`(`id`,  `content`, `approval`, `posted_page`, `image`, `time`) VALUES (NULL, '".base64_encode($_POST['content'])."', '0' , '0', '$Filename','".date("Y-m-d H:i:s")."')");
 			$content = array('status' => true, 'content' => 'Bài viết của bạn sẽ chờ được phê duyệt trước khi xuất hiện trên website', 'error' => false);
 		}
 		else
